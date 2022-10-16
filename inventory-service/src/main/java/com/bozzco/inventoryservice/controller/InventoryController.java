@@ -6,10 +6,9 @@ import com.bozzco.inventoryservice.utils.Responder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/inventory")
@@ -21,7 +20,7 @@ public class InventoryController {
     }
 
     @GetMapping
-    public ResponseEntity<APIResponse> isInStock(@PathVariable("sku-code") String skuCode){
+    public ResponseEntity<APIResponse> isInStock(@RequestParam List<String> skuCode){
         return Responder.okay(inventorySevice.isInStock(skuCode));
     }
 }

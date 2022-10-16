@@ -1,5 +1,10 @@
 package com.bozzco.inventoryservice.service;
 
+import com.bozzco.inventoryservice.dtos.InventoryResponse;
+
+
+import java.util.List;
+
 public interface InventorySevice {
-    boolean isInStock(String skuCode);
+    List<InventoryResponse> isInStock(List<String> skuCode);
 }

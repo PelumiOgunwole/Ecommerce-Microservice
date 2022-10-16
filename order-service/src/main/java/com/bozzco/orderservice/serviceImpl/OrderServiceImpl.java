@@ -1,7 +1,9 @@
 package com.bozzco.orderservice.serviceImpl;
 
+import com.bozzco.orderservice.dto.InventoryResponse;
 import com.bozzco.orderservice.dto.OrderDTO;
 import com.bozzco.orderservice.dto.OrderItemsDto;
+import com.bozzco.orderservice.exception.OrderNotFoundException;
 import com.bozzco.orderservice.exception.ProductNotFoundException;
 import com.bozzco.orderservice.model.Order;
 import com.bozzco.orderservice.model.OrderItems;
@@ -12,48 +14,52 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import javax.transaction.Transactional;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 @Transactional
-@RequiredArgsConstructor
+
 public class OrderServiceImpl implements OrderService {
     private OrderRepository orderRepository;
     private WebClient webClient;
 
-    public OrderServiceImpl(OrderRepository orderRepository) {
+    public OrderServiceImpl(OrderRepository orderRepository, WebClient webClient) {
         this.orderRepository = orderRepository;
+        this.webClient = webClient;
     }
 
     public Order placeOrder(OrderDTO orderDTO){
         Order order  = new Order();
         order.setOrderNumber(UUID.randomUUID().toString());
         List<OrderItems> orderItemsList = orderDTO.getOrderItemsList().stream()
-                .map(this::mapToDto).collect(Collectors.toList());
+                .map(this::mapToDto).toList();
         order.setOrderItemsList(orderItemsList);
 
+        List<String> skuCodes =order.getOrderItemsList().stream()
+                .map(OrderItems::getSkuCode).toList();
         // Make a call to Inventory Service and place order if product in stock
-        Boolean productAvailable = webClient.get()
-                .uri("http://localhost:8082/api/inventory")
+        InventoryResponse[] inventoryResponseArray = webClient.get()
+                .uri("http://localhost:8082/api/inventory",
+                        uriBuilder -> uriBuilder.queryParam("skuCode",skuCodes).build())
                 .retrieve()
-                .bodyToMono(Boolean.class) // specifies the return type
-                .block(); // to make an asychronous call
-
-        if(!Boolean.TRUE.equals(productAvailable)){
-            throw new ProductNotFoundException;
-        }
-
-        else{
+                .bodyToMono(InventoryResponse[].class)
+                .block();
+        boolean allProductsInStock= Arrays.stream(inventoryResponseArray).allMatch(InventoryResponse::isInStock);
+        if(allProductsInStock){
             return orderRepository.save(order);
         }
+        else{
+            throw new OrderNotFoundException("Order not possible");
+        }
+
     }
 
     private OrderItems mapToDto(OrderItemsDto orderedItemDTO) {
         OrderItems orderItems = new OrderItems();
         orderItems.setPrice(orderedItemDTO.getPrice());
-
         orderItems.setQuantity(orderedItemDTO.getQuantity());
         orderItems.setSkuCode(orderedItemDTO.getSkuCode());
         return orderItems;

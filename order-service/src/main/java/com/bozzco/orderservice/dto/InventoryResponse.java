@@ -1,12 +1,15 @@
 package com.bozzco.orderservice.dto;
+
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class OrderDTO {
-    private List<OrderItemsDto> orderItemsList;
+@Builder
+public class InventoryResponse {
+    private String skuCode;
+    private boolean isInStock;
 }
