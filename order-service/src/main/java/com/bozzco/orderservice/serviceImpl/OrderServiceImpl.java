@@ -17,19 +17,21 @@ import javax.transaction.Transactional;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
+
 
 @Service
 @Transactional
 
 public class OrderServiceImpl implements OrderService {
     private OrderRepository orderRepository;
-    private WebClient webClient;
+    private WebClient.Builder webClientBuilder;
 
-    public OrderServiceImpl(OrderRepository orderRepository, WebClient webClient) {
+    public OrderServiceImpl(OrderRepository orderRepository, WebClient.Builder webClientBuilder) {
         this.orderRepository = orderRepository;
-        this.webClient = webClient;
+        this.webClientBuilder = webClientBuilder;
     }
+
+
 
     public Order placeOrder(OrderDTO orderDTO){
         Order order  = new Order();
@@ -41,8 +43,8 @@ public class OrderServiceImpl implements OrderService {
         List<String> skuCodes =order.getOrderItemsList().stream()
                 .map(OrderItems::getSkuCode).toList();
         // Make a call to Inventory Service and place order if product in stock
-        InventoryResponse[] inventoryResponseArray = webClient.get()
-                .uri("http://localhost:8082/api/inventory",
+        InventoryResponse[] inventoryResponseArray = webClientBuilder.build().get()
+                .uri("http://inventory-service/api/inventory",
                         uriBuilder -> uriBuilder.queryParam("skuCode",skuCodes).build())
                 .retrieve()
                 .bodyToMono(InventoryResponse[].class)

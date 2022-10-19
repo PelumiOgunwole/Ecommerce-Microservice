@@ -18,7 +18,6 @@ public class InventoryServiceImpl implements InventorySevice {
     }
 
     @Override
-    
     public List<InventoryResponse> isInStock(List<String> skuCode) {
         return inventoryRepository.findBySkuCodeIn(skuCode).stream()
                 .map(inventory->
