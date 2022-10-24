@@ -1,0 +1,3 @@
+# Ecommerce-Microservice
+An ecommerce microservice simple project to demonstrate my knowledge of microservices architectures. There is an inventory service that contains a list of all product in store, a product service that allows for creation of new products and an order service that allows users to place order on one or more products.
+The project features the use of Discovery server to store the details of the address of each services in its registry for easy accessibility. An API-Gateway was used as an entry point to every services that exists.I provided security for the api-gateway with the use of key cloak. Other features like circuit breaker, distributed tracing and Kafka was used in achieving the full scope of the project. 
